@@ -24,6 +24,22 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/Othello.vue')
+    },
+    {
+      path: '/chinese-chess',
+      name: 'Chinese Chess',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/ChineseChess.vue')
+    },
+    {
+      path: '/tetris',
+      name: 'Tetris',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/Tetris.vue')
     }
   ]
 })

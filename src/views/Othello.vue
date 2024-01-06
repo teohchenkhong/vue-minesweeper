@@ -1,16 +1,25 @@
 <template>
 	<main class = "mt-2">
 		<div class="mb-4 flex">
-			{{gameState}}
 			<button class = "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" v-if = "['Win', 'Draw'].includes(gameState)" @click = "initGame">Restart</button>
 			<span class = "bg-gray-500 text-white font-bold py-2 px-4 rounded">
 				{{gameState === "New" ? 0 : Math.ceil((currentTime - startTime)/1000)}}s
 			</span>
-
-			<span>Current Player</span>
-			<div class="bg-green-600 w-8 h-8">
-				<div :class = "'rounded-full w-full h-full ' + (currentPlayer === 'Black' ? 'bg-black' : 'bg-white')"></div>
-			</div>
+			<template v-if = "gameState === 'Win'">
+				<span>Winner</span>
+				<div class="bg-green-600 w-8 h-8">
+					<div :class = "'rounded-full w-full h-full ' + (tileCount['Black'] > tileCount['White'] ? 'bg-black' : 'bg-white')"></div>
+				</div>
+			</template>
+			<template v-else-if = "gameState === 'Draw'">
+				<span>Draw</span>
+			</template>
+			<template v-else>
+				<span>Current Player</span>
+				<div class="bg-green-600 w-8 h-8">
+					<div :class = "'rounded-full w-full h-full ' + (currentPlayer === 'Black' ? 'bg-black' : 'bg-white')"></div>
+				</div>
+			</template>
 		</div>
 		<table class = "table-auto mt-2 mb-2">
 			<tr v-for = "rowIndex in nRows">
@@ -50,7 +59,7 @@ export default{
 			,timer: null
 			,currentPlayer: "White"
 			// ,moves: ""
-			,moves: "D3E3F2C2F3F5E6G3B1F1H3H4G6F4H2H1E1D1G2E2G1C6D6C3B2C4B4G4G5C7F6E7G7F7B6B7C5D7A7A8B8B5A4B3H5E8F8G8H8H7H6D8C8A6A5A3A2A1C1D2"
+			,moves: ""
 			,currentMoves: ""
 		}
 	}
@@ -69,12 +78,11 @@ export default{
 			if (this.moves.length > 0){
 				let currentMove = this.moves.substring(0,2);
 				this.moves = this.moves.substring(2,this.moves.length);
-
 				let columnIndex = colIndex[currentMove[0]];
 				let rowIndex = parseInt(currentMove[1]) - 1;
-				this.clickTile(rowIndex, columnIndex)
+				this.clickTile(rowIndex, columnIndex, this.moves.length === 0);
 			}
-		},300);
+		},100);
 	}
 	,beforeDestroy(){
 		clearInterval(this.timer);
@@ -89,7 +97,7 @@ export default{
 	}
 	,methods:{
 		//==================================== INTERACTIVITY ====================================//
-		clickTile(rowIndex, columnIndex){
+		clickTile(rowIndex, columnIndex, checkWinFlag = true){
 			if (["Game Over", "Win"].includes(this.gameState)) return;
 
 			// First Move
@@ -100,7 +108,7 @@ export default{
 				this.currentTime = new Date().getTime();
 				this.timer = setInterval(()=>{
 					this.currentTime = new Date().getTime();
-				}, 1000)
+				}, 100)
 			}
 			let tileIndex = this.flattenIndex(rowIndex, columnIndex);
 			
@@ -115,10 +123,10 @@ export default{
 					})
 				})
 				this.setTile(tileIndex, this.currentPlayer);
-				this.currentPlayer = this.currentPlayer === "Black" ? "White" : "Black";
-				this.checkWin();
+				this.swapPlayer();
+				if (checkWinFlag) this.checkWin();
 				let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-				this.currentMoves += alphabet[columnIndex] + (rowIndex + 1);
+				this.currentMoves = this.currentMoves + alphabet[columnIndex] + (rowIndex + 1).toString();
 			}
 		}
 
@@ -150,10 +158,11 @@ export default{
 			this.tileStates[tileIndex] = colour;
 		}
 		//===================================== GAME ENGINE =====================================//
-		,initGame(rowIndex, columnIndex){
+		,initGame(){
 			// Var Init
 			let nTiles = this.nRows * this.nColumns;
 			this.gameState = "New";
+			this.currentPlayer = "White";
 
 			this.tileStates = Object.fromEntries(
 				new Array(nTiles).fill("Empty").map((r,rIndex)=>{
@@ -201,13 +210,21 @@ export default{
 				let {rowIndex, columnIndex} = this.expandIndex(surrTileIndex);
 				return this.checkTile(rowIndex, columnIndex).length > 0;
 			})
+			console.log(validMoves);
 			if (validMoves.length === 0){
-				clearInterval(this.timer);
-				if (this.tileCount["Black"] === this.tileCount["White"]){
-					return this.gameState = "Draw";
+				this.swapPlayer();
+				validMoves = [...surroundingIndices].filter(surrTileIndex=>{
+					let {rowIndex, columnIndex} = this.expandIndex(surrTileIndex);
+					return this.checkTile(rowIndex, columnIndex).length > 0;
+				})
+				console.log(validMoves);
+				if (validMoves.length === 0){
+					clearInterval(this.timer);
+					if (this.tileCount["Black"] === this.tileCount["White"]){
+						return this.gameState = "Draw";
+					}
+					return this.gameState = "Win";
 				}
-				return this.gameState = "Win";
-
 			}
 		}
 		,checkTile(rowIndex, columnIndex){
@@ -271,6 +288,11 @@ export default{
 				iteration++;
 			}
 			return directions.filter(dir=> dir.validity === "Valid");
+		}
+
+		// Swap player
+		,swapPlayer(){
+			this.currentPlayer = this.currentPlayer === "Black" ? "White" : "Black";
 		}
 
 		// Helpers

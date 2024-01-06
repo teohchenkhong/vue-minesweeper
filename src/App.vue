@@ -1,21 +1,49 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/minesweeper">Minesweeper</RouterLink>
-        <RouterLink to="/othello">Othello</RouterLink>
-      </nav>
-    </div>
+    <nav class="bg-blue-500 p-4">
+      <div class="container mx-auto flex justify-between items-center">
+        <!-- <div>
+          <a href="#" class="text-white text-lg font-semibold">Your Logo</a>
+        </div> -->
+        <div class="space-x-4">
+          <RouterLink 
+            v-for = "({path, name}) in routes"
+            :class = "'text-white ' + ($route.path === path ? 'border-b border-white' : '')" 
+            :to="path"
+          >
+            {{name}}
+          </RouterLink>
+        </div>
+      </div>
+    </nav>
   </header>
 
   <RouterView />
 </template>
+
+<script setup>
+import { RouterLink, RouterView } from 'vue-router'
+import HelloWorld from './components/HelloWorld.vue'
+
+const routes= [
+  {
+    path: "/minesweeper"
+    ,name: "Minesweeper"
+  }
+  ,{
+    path: "/othello"
+    ,name: "Othello"
+  }
+  ,{
+    path: "/chinese-chess"
+    ,name: "Chinese Chess"
+  }
+  ,{
+    path: "/tetris"
+    ,name: "Tetris"
+  }
+];
+</script>
+
 

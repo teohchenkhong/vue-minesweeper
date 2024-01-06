@@ -207,7 +207,10 @@ export default{
 				return this.checkMine(tileIndex) || ["Flagged", "Revealed"].includes(this.tileStates[tileIndex.toString()]);
 			})
 
-			if (revealedAllTiles) this.gameState = "Win";
+			if (revealedAllTiles) {
+				this.gameState = "Win";
+				clearInterval(this.timer);
+			}
 		}
 
 		// Helpers
